@@ -8,33 +8,9 @@ import {
   View,
 } from "react-native";
 import tw from "tailwind-react-native-classnames";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { addMake, selectMake } from '../slices/carSlice'
-
-const cars = [
-  { model: "Toyota", index: '1' },
-  { model: "Honda", index: '2' },
-  { model: "Mercedes-Benz", index: '3' },
-  { model: "Range Rover", index: '4' },
-  { model: "Hyundai", index: '5' },
-  { model: "Kia", index: '6' },
-  { model: "BMW", index: '7' },
-  { model: "Lexus", index: '8' },
-  { model: "Ford", index: '9' },
-  { model: "Mitsubushi", index: '10' },
-  { model: "Audi", index: '11' },
-  { model: "Volkswagen", index: '12' },
-  { model: "Land Rover", index: '13' },
-  { model: "Nissan", index: '14' },
-  { model: "Jaguar", index: '15' },
-];
-
-
-
-//select car make and dispatch to redux
-//pull the make from redux into model screen and filter our models and asign to target array
-//render items from array into a list
-
+import { cars } from "../cardata";
 
 const CarMakes = () => {
 
@@ -42,16 +18,18 @@ const CarMakes = () => {
 
   const navigation = useNavigation()
   
+  const handleNext = (item) => {
+    navigation.navigate('CarModel')
+    dispatch(addMake(item.model))
+  }
+
   return (
     <View style={tw`mt-20`}>
       <FlatList
         data={cars}
         renderItem={({ item }) => (
-          <TouchableOpacity style={tw`bg-gray-100 border-2 h-10 text-center`} onPress={() => {
-            navigation.navigate('CarModel')
-            dispatch(addMake(item.model))
-            }} >
-            <Text>{item.model}</Text>
+          <TouchableOpacity style={tw`bg-gray-100 text-lg h-10 text-center py-1 border-t justify-center`} onPress={() => handleNext(item)} >
+            <Text style={tw`px-3`}>{item.model}</Text>
           </TouchableOpacity>
         )}
         keyExtractor={(item) => item.index}

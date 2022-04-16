@@ -26,11 +26,15 @@ const RequestCard = ({ car, requestid, schedule, location, requestType, status }
     navigation.navigate("Diagnostic")
   }
 
-  console.log(req)
+  const openQuotations = () => {
+    dispatch(setRequestId(req))
+    navigation.navigate('Quotation')
+  }
 
   return (
-    <View
-      style={tw`bg-white mx-4 rounded-xl mb-8 p-5 justify-center shadow-2xl`}
+    <TouchableOpacity
+      onPress={() => toggle()}
+      style={tw`bg-white mx-4 rounded-xl mb-4 p-5 justify-center shadow-2xl`}
     >
       <View style={tw`flex-row justify-between`}>
         {requestType == "Maintenance" ? (
@@ -56,17 +60,17 @@ const RequestCard = ({ car, requestid, schedule, location, requestType, status }
         )}
 
         <View>
-          <Text>Request ID: {requestid}</Text>
-          <Text>Request Type: {requestType}</Text>
-          <Text>Car: {car}</Text>
-          {/* <Text>AC, Engine, Suspension...</Text> */}
-          <Text>Location: {location}</Text>
-          <Text style={tw`w-44`}>Schedule: {schedule}</Text>
-          <Text style={tw`w-44`}>Status: {status}</Text>
+          <Text style={styles.property}>Request ID: <Text style={tw`font-semibold text-black`}>{requestid}</Text></Text>
+          <Text style={styles.property}>Request Type: <Text style={tw`font-semibold text-black`}>{requestType}</Text></Text>
+          <Text style={styles.property}>Car: <Text style={tw`font-semibold text-black`}>{car}</Text></Text>
+          <Text style={styles.property}>Location: <Text style={tw`font-semibold text-black`}>{location}</Text></Text>
+          <Text style={styles.property}>Schedule: <Text style={tw`text-sm font-semibold text-black`}>{new Date(schedule).toUTCString()}</Text></Text>
+          <Text style={styles.property}>Status: <Text style={tw`font-semibold text-sm ${status === 'Confirmed' ? 'text-green-500' : 'text-yellow-300'}`}>{status}</Text></Text>
           
         </View>
-        <Icon name="sort-down" type="font-awesome" onPress={toggle} />
+        <Icon name="sort-down" type="font-awesome" />
       </View>
+      
       <CollapsibleView
         noArrow={true}
         expanded={expanded}
@@ -74,23 +78,29 @@ const RequestCard = ({ car, requestid, schedule, location, requestType, status }
       >
         <View>
           <TouchableOpacity
-            style={tw`border-0 rounded-3xl self-center w-10/12 p-2 mt-10 mb-10 bg-pry-color-1`}
+            style={tw`border-0 rounded-3xl self-center w-10/12 p-2`}
             onPress={openDiagnosis}
           >
-            <Text style={tw`text-center`}>Diagnosis(Ongoing)</Text>
+            <Text style={tw`text-center font-bold text-blue-500`}>Diagnosis(Ongoing)</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={tw`border-0 rounded-3xl self-center w-10/12 p-2 mb-5 bg-pry-color-1`}
+            style={tw`border-0 rounded-3xl self-center w-10/12 p-2`}
+            onPress={openQuotations}
           >
-            <Text style={tw`text-center`}>Quotation</Text>
+            <Text style={tw`text-center font-bold text-blue-600`}>Quotations</Text>
           </TouchableOpacity>
         </View>
       </CollapsibleView>
-    </View>
+    </TouchableOpacity>
   );
 };
 
 export default RequestCard;
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  property: {
+    fontSize: 16,
+    color: "grey"
+  }
+});

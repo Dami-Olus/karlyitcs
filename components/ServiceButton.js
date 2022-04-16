@@ -7,7 +7,7 @@ import tw from "tailwind-react-native-classnames";
 const ServiceButton = ({title, onPress, image}) => {
   return (
     <TouchableOpacity
-      style={tw` w-1/4 h-20 ml-5 rounded-xl bg-white justify-center items-center mb-5`}
+      style={tw` w-1/4 h-20 ml-5 rounded-full bg-white justify-center items-center mb-5`}
       onPress={onPress}
     >
       <Image source={image} />

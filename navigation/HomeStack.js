@@ -1,7 +1,5 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-
-import Home from '../screens/Home';
 import Tabs from './Tabs';
 import Diagnostic from '../screens/Diagnostic';
 import Quotation from '../screens/Quotation';
@@ -10,7 +8,6 @@ import Maintenance from '../screens/Maintenance';
 import Inspection from '../screens/Inspection';
 import Repairs from '../screens/Repairs';
 import CarRegisteration from '../screens/CarRegisteration';
-import { SafeAreaView } from 'react-native';
 import CarMakes from '../screens/CarMakes';
 import CarModels from '../screens/CarModels';
 import Scan from '../screens/Scan';
@@ -20,6 +17,9 @@ import MaintenancePlan from '../screens/Plans/MaintenancePlan';
 import MembershipPlan from '../screens/Plans/MembershipPlan';
 import InsurancePlan from '../screens/Plans/InsurancePlan';
 import VehicleHealthPlan from '../screens/Plans/VehicleHealthPlan';
+import PrivacyPolicy from '../screens/PrivacyPolicy';
+import PlanDetails from '../screens/PlanDetails';
+import Shop from '../screens/Shop';
 
 const Stack = createNativeStackNavigator();
 
@@ -45,7 +45,9 @@ export default function HomeStack() {
             <Stack.Screen name="MembershipPlan" component={MembershipPlan} />
             <Stack.Screen name="InsurancePlan" component={InsurancePlan} />
             <Stack.Screen name="VehicleHealthPlan" component={VehicleHealthPlan} />
-            
+            <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicy} />
+            <Stack.Screen name="PlanDetails" component={PlanDetails} />
+            <Stack.Screen name="Shop" component={Shop} />
     </Stack.Navigator>
    
   );

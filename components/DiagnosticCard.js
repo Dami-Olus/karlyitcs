@@ -20,7 +20,6 @@ const firestore = Firebase.firestore();
 const DiagnosticCard = ({ system, issue }) => {
   const request = useSelector(selectRequest);
 
-  
   const [expanded, setExpanded] = useState(false);
   const navigation = useNavigation();
   const [display, setDisplay] = useState("none");

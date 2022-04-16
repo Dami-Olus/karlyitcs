@@ -3,7 +3,6 @@ import 'firebase/auth';
 import Constants from 'expo-constants';
 import 'firebase/firestore';
 
-
 // Initialize Firebase
 const firebaseConfig = {
   apiKey: Constants.manifest.extra.apiKey,
@@ -18,6 +17,8 @@ let Firebase;
 
 if (firebase.apps.length === 0) {
   Firebase = firebase.initializeApp(firebaseConfig);
+}else{
+  Firebase = firebase.app()
 }
 
 export default Firebase;

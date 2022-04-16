@@ -1,11 +1,11 @@
 import React, { useContext, useEffect } from "react";
-import { FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { FlatList, StyleSheet, Text, View } from "react-native";
 import RequestCard from "../components/RequestCard";
 import tw from "tailwind-react-native-classnames";
-import { Icon } from "react-native-elements";
 import Firebase from "../config/firebase";
 import { useState } from "react";
 import { AuthenticatedUserContext } from "../navigation/AuthenticatedUserProvider";
+import { Wave } from "react-native-animated-spinkit";
 
 const firestore = Firebase.firestore();
 
@@ -16,9 +16,9 @@ const Requests = () => {
   const [loading, setLoading] = useState(true); // Set loading to true on component mount
   const [requests, setRequests] = useState([]); // Initial empty array of users
 
-  console.log(requests)
 
   useEffect(() => {
+    setLoading(true)
     const subscriber = firestore
       .collection("Requests").doc(user.uid).collection('Requests').where('requestId', '==', user.uid)
       .onSnapshot((querySnapshot) => {
@@ -30,31 +30,35 @@ const Requests = () => {
             key: documentSnapshot.id,
           });
         });
-        // console.log(requests);
         setRequests(request);
         setLoading(false);
       });
   },[]);
 
-  console.log(requests)
-
+  
   return (
-    <View style={tw`mb-24`}>
-      <View style={tw`ml-5 mt-5`}>
-        <View style={tw`mb-8`}>
+    
+    <View style={tw`flex-grow pb-36`}>
+        <View style={tw`mb-8 pt-10 px-3`}>
           <Text style={tw`font-bold text-lg text-black`}>Requests</Text>
           <Text>View your requests</Text>
         </View>
-      </View>
-        <FlatList 
-          data={requests}
-          renderItem={({ item }) => (
-            <RequestCard car={item.Car} schedule={item.Schedule} location={item.Location} requestid={item.key} requestType={item.requestType} icon={item.requestIcon} status={item.status} />
-          )}
-          keyExtractor={(item) => item.key}
+
+        {
+          loading ? 
+            <View style={tw`w-full flex-grow items-center justify-center`}>
+              <Wave size={30} color="#2bced6" />
+            </View> :
+
+            <FlatList
+              data={requests}
+              renderItem={({ item }) => (
+                <RequestCard car={item.Car} schedule={item.Schedule} location={item.Location} requestid={item.key} requestType={item.requestType} icon={item.requestIcon} status={item.status} />
+              )}
+              keyExtractor={(item) => item.key}
+            />
+        }
         
-        />
-      
     </View>
   );
 };

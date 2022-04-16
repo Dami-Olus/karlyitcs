@@ -5,18 +5,21 @@ import tw from "tailwind-react-native-classnames";
 
 const AddCar = () => {
   const navigation = useNavigation()
+
   return (
-    <View style={tw`mb-5`}>
+    <View style={tw`justify-center items-center mb-5`}>
         <Image
-          style={tw`ml-28 mt-10`}
+          style={tw`mt-10`}
           source={require("../assets/icons/garage-car.png")}
         />
-        <Text style={tw`ml-20 mt-5`}>Add your car(s) to get started</Text>
+        
+        <Text style={tw`mt-5`}>Add your car(s) to get started</Text>
+        
         <TouchableOpacity
-          style={tw`border-0 rounded-3xl self-center w-10/12 p-2 mt-5 bg-pry-color-1`}
+          style={tw`border-0 rounded-3xl self-center w-10/12 p-2 mt-5 bg-blue-200`}
           onPress={() => navigation.navigate('CarMake')}
         >
-          <Text style={tw`text-center`}>Add Car</Text>
+          <Text style={tw`text-center font-medium text-lg`}>Add Car</Text>
         </TouchableOpacity>
       </View>
   )

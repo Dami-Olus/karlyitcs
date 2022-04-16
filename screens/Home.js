@@ -1,8 +1,6 @@
-import { useNavigation } from "@react-navigation/native";
-import { StatusBar } from "expo-status-bar";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import React, { useContext, useEffect, useState } from "react";
 import {
-  FlatList,
   Image,
   Modal,
   ScrollView,
@@ -11,39 +9,32 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { Icon } from "react-native-elements";
 import tw from "tailwind-react-native-classnames";
 import AddCar from "../components/AddCar";
 import HealthCard from "../components/HealthCard";
 import ServiceButton from "../components/ServiceButton";
-import { IconButton } from "../components";
 import Firebase from "../config/firebase";
 import { AuthenticatedUserContext } from "../navigation/AuthenticatedUserProvider";
 import ServiceInfo from "../components/ServiceInfo";
-import { useSelector } from "react-redux";
-import { selectLastServiceDate } from "../slices/carSlice";
-import { formatDistanceToNow } from "date-fns";
-import CarCard from "../components/CarCard";
+import { useSelector, useDispatch } from "react-redux";
+import { getPlans } from "../slices/carSlice";
+import { getCars } from "../slices/carSlice";
+import PlansForCar from "../components/PlansForCar";
+import firebase from 'firebase'
 
-const auth = Firebase.auth();
 const firestore = Firebase.firestore();
 
 const Home = () => {
-  const [garage, setGarage] = useState([]); // Initial empty array of users
-  const [selectedCar, setSelectedCar] = useState("");
   const [loading, setLoading] = useState(true); // Set loading to true on component mount
-  const [isVisible, setIsVisible] = useState(false)
-  const lastServiceDate = useSelector(selectLastServiceDate);
+  const [usersFullname, setusersFullname] = useState(null);
+  const [showAlert, setshowAlert] = useState(false)
 
   const navigation = useNavigation();
+  const router = useRoute()
   const { user } = useContext(AuthenticatedUserContext);
-  const handleSignOut = async () => {
-    try {
-      await auth.signOut();
-    } catch (error) {
-      console.log(error);
-    }
-  };
+
+  const { current_car, cars, plans, basket } = useSelector((state) => state.car);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     const subscriber = firestore
@@ -60,201 +51,249 @@ const Home = () => {
             key: documentSnapshot.id,
           });
         });
-        console.log(garage);
-        setGarage(garage);
+        dispatch(getCars(garage));
         setLoading(false);
       });
   }, []);
 
-  const dt =
-    garage.length !== 0 ? new Date(garage[3].nextServiceDate) : new Date();
-  const lstDt =
-    garage.length !== 0 ? new Date(garage[3].lastServiceDate) : new Date();
-  console.log(dt);
-  const duration = formatDistanceToNow(dt);
-  console.log(duration);
+  useEffect(() => {
+    const fetchuserData = async () => {
+      await firestore
+        .collection("users")
+        .doc(user.uid)
+        .get()
+        .then((doc) => setusersFullname(doc.data().name))
+        .catch((error) => console.log(error));
 
-  const now = new Date();
-  const one_day = 1000 * 60 * 60 * 24;
-  const totalDays = (
-    Math.round(dt.getTime() - lstDt.getTime()) / one_day
-  ).toFixed(0);
-  console.log(totalDays);
-  const leftDays = (
-    Math.round(dt.getTime() - new Date().getTime()) / one_day
-  ).toFixed(0);
-  console.log(leftDays);
+       
+    };
 
-  const progressLeft = leftDays / totalDays;
-  console.log(progressLeft);
+    fetchuserData();
+  }, [user]);
+ 
+  useEffect(() => {
+    const fetchPlans = async () =>{
+      if(!current_car) return 
 
- const openModal = () => {
-    setIsVisible(true)
-  }
+      let plan_arr = []
 
-  const closeModal = () => {
-    setIsVisible(false)
+      await firestore
+      .collection("Plans")
+      .doc(user.uid)
+      .collection("Plans")
+      .where('carId',  '==', current_car.key)
+      .get()
+      .then(res => {
+        res.forEach(plan => {
+          plan_arr = [...plan_arr, plan.data()]
+        })
+      })
+      .catch((error) => console.log(error));
+
+      await firestore
+      .collection("Plans")
+      .doc(user.uid)
+      .collection("Plans")
+      .where('Name',  '==', "Membership")
+      .get()
+      .then(res => {
+        res.forEach(plan => {
+          plan_arr = [...plan_arr, plan.data()]
+        })
+      })
+      .catch((error) => console.log(error))
+
+      return dispatch(getPlans(plan_arr))
+    }
+    fetchPlans()
+  }, [])
+
+  const handleServiceButton = (route) => {
+    if (cars.length === 0) return alert("Add car to your garage to access this feature");
+    if (!current_car) return alert("Select a car to access these services");
+
+    return navigation.navigate(route);
+  };
+
+  const checkModal = () => {
+    if(router.params?.alert) return true
+    return false
   }
 
   return (
-    <View style={tw`bg-white`}>
-      <Modal
-        animationType={"slide"}
-        transparent={false}
-        visible={isVisible}
-        
-      >
-        
-        <FlatList
-        data={garage}
-        renderItem={({ item }) => (
-          <CarCard make={item.Make} model={item.Model} onSelect={closeModal} />
-        )}
-        keyExtractor={(item) => item.key}
-      />
-      </Modal>
-
-      <View style={styles.header}>
-        <View style={tw`mt-10 ml-5 flex-row`}>
-          <Image
-            source={require("../assets/Images/karlyticsLogo.png")}
-            style={tw`h-10 w-10`}
-          />
-          <Text style={tw`text-2xl text-pry-1`}>Karlytics</Text>
-        </View>
-      </View>
+    <View style={tw`bg-white pt-16`}> 
       <ScrollView>
-        <View style={tw`bg-white`}>
-          {/* <View style={tw`flex-row mt-10`}>
-          <IconButton
-            name="logout"
-            size={24}
-            color="#2bced6"
-            onPress={handleSignOut}
-          />
-          <Text style={tw`ml-5`}>Logout</Text>
-        </View> */}
-
-          <View style={tw`ml-5 mt-5`}>
-            <View style={tw`flex-row justify-between mr-7`}>
-              <View style={tw`mb-8`}>
-                <Text style={tw`font-bold text-lg text-black`}>
-                  Welcome {user.email}{" "}
-                </Text>
-                <Text>How's your car feeling today</Text>
-              </View>
-              <TouchableOpacity>
-                <Text>Select car</Text>
-                <Icon name="sort-down" type="font-awesome" onPress={openModal} />
-              </TouchableOpacity>
+        <View style={tw`bg-white ${checkModal() && 'opacity-40'}`}>
+          <View style={tw`flex-row justify-between px-3`}>
+            <View>
+              <Text style={tw`font-bold text-lg text-black`}>
+                Welcome {usersFullname}{" "}
+              </Text>
+              <Text>How's your car feeling today</Text>
             </View>
+
+            <TouchableOpacity style={tw`flex-row relative`} onPress={() => navigation.navigate("Basket")}>
+              <View style={styles.basket}>
+                <Text style={{ color: "white" }}>{basket.length}</Text>
+              </View>
+             
+              <Image
+                source={require("../assets/icons/shopping-cart.png")}
+                style={{ resizeMode: "contain", height: 40 }}
+              />
+            </TouchableOpacity>
           </View>
 
-          {garage.length !== 0 ? (
-            <ServiceInfo
-              serviceDate={garage[3].nextServiceDate}
-              duration={duration}
-              progressLeft={progressLeft}
-            />
+          {cars.length !== 0 ? (
+            <View style={tw`px-4 mt-5 mb-3`}>
+              {current_car ? (
+                <View>
+                  <Text
+                    style={[
+                      tw`text-2xl font-semibold mb-5`,
+                      { color: "#2bced6" },
+                    ]}
+                  >
+                    {current_car.Make} {current_car.Model}
+                  </Text>
+
+                  <ServiceInfo current_car={current_car} />
+                </View>
+              ) : (
+                <Text style={tw`text-xl text-gray-600 font-medium`}>
+                  Select a car from your garage
+                </Text>
+              )}
+
+            </View>
           ) : (
             <AddCar />
           )}
-          {/* <AddCar /> */}
 
-          <View
-          // style={styles.container}
-          >
-            {/* <StatusBar style="dark-content" /> */}
-            <View
-            // style={styles.row}
-            >
-              {/* <Text 
-              // style={styles.title}
-              >Welcome {user.email}!</Text> */}
-            </View>
-            {/* <Text 
-            // style={styles.text}
-            >Your UID is: {user.uid} </Text> */}
-          </View>
+          {cars.length > 0 ? (
+              <TouchableOpacity
+                style={[styles.selectCar, tw`mx-auto`]}
+                onPress={() => navigation.navigate("Garage")}
+              >
+                <Text style={tw`text-white text-xl text-center`}>{current_car ? "Change Car" : "Select Car"}</Text>
+              </TouchableOpacity>
+            ) : (
+              <View style={tw`w-full items-center justify-center`}>
+                <Text style={tw`font-semibold mb-5 text-gray-400`}>No car(s) yet</Text>
+              </View>
+            )}
 
           <View style={tw`bg-gray-100  rounded-t-3xl`}>
+            {
+              current_car && 
+              <View style={tw`bg-gray-100 mt-5 w-full mx-auto p-3 rounded-lg`}>
+                <View style={tw`mb-5`}>
+                  <Text style={tw`text-xl font-semibold text-gray-800`}>Membership Plan</Text>
+                  {
+                    plans.filter(item => item.Name === "Membership").length > 0 ?
+
+                    plans.filter(item => item.Name === "Membership").map((mem, index) => (<Text key={index} style={[tw`font-semibold text-sm text-gray-500`]}>{mem.type} {mem.Name}</Text>))
+                    :
+                    <Text style={tw`text-sm text-gray-400`}>You have no membership plan yet</Text>
+                  }
+                </View>
+
+                <PlansForCar selectedCar={current_car} plans={plans}  />
+              </View>
+            }
+           
             <View style={tw`mb-5`}>
               <View>
                 <HealthCard />
               </View>
+
               <Text style={tw`ml-7 mt-5 text-center font-bold mb-5 text-lg`}>
                 Make a request
               </Text>
-              <TouchableOpacity
-                style={tw`bg-white flex-row ml-5 mr-5 rounded-xl py-10`}
-                onPress={() => navigation.navigate("Scan")}
-              >
-                <Image
-                  style={tw`ml-7`}
-                  source={require("../assets/icons/scan.png")}
-                />
-                <Text style={tw`ml-7 mt-2`}>
-                  Request a scan to view health report
-                </Text>
-              </TouchableOpacity>
+
+              
             </View>
-            <View style={tw`flex-row mb-24 flex-wrap`}>
+
+            <View style={tw`flex-row mb-24 flex-wrap items-center justify-center`}>
               <ServiceButton
                 title="Repair"
                 image={require("../assets/icons/repair.png")}
-                onPress={() => navigation.navigate("Repairs")}
+                onPress={() => handleServiceButton("Repairs")}
               />
               <ServiceButton
                 title="Maintenance"
                 image={require("../assets/icons/maintain.png")}
-                onPress={() => navigation.navigate("Maintenance")}
+                onPress={() => handleServiceButton("Maintenance")}
               />
               <ServiceButton
                 title="Inspection"
                 image={require("../assets/icons/Inspect.png")}
-                onPress={() => navigation.navigate("Inspection")}
+                onPress={() => handleServiceButton("Inspection")}
               />
               <ServiceButton
                 title="Plans"
                 image={require("../assets/icons/wpf_renew-subscription.png")}
-                onPress={() => navigation.navigate("Plans")}
+                onPress={() => handleServiceButton("Plans")}
+              />
+               <ServiceButton
+                title="Buy parts"
+                image={require("../assets/icons/shop.png")}
+                onPress={() => handleServiceButton("Shop")}
+              />
+               <ServiceButton
+                title="Scan your car"
+                image={require("../assets/icons/scan.png")}
+                onPress={() => handleServiceButton("Scan")}
               />
             </View>
           </View>
-          {/* <View style={tw``}></View> */}
+
         </View>
       </ScrollView>
     </View>
   );
 };
 
+{/* <Modal
+  transparent={true}
+  visible={showAlert}
+>
+  <View style={tw`mt-10 bg-green-400 mx-auto w-11/12 p-3 rounded-lg`}>
+    <TouchableOpacity style={tw`w-full items-end`} onPress={() => setshowAlert(false)}>
+      <Icon name="close" type="font-awesome" color='white' size={20} />
+    </TouchableOpacity>
+    
+    <View style={tw`w-full items-center`}>
+      <Icon name="check-circle-o" color='white' type="font-awesome" />
+      <Text style={tw`text-white font-semibold`}>{router.params?.alert}</Text>
+    </View>
+  </View>
+  
+</Modal> */}
+
 export default Home;
 
 const styles = StyleSheet.create({
-  // header: {
-  //   position: "absolute",
-  //   top: 0
-  // },
-  //   container: {
-  //     flex: 1,
-  //     backgroundColor: "#e93b81",
-  //     paddingTop: 50,
-  //     paddingHorizontal: 12,
-  //   },
-  //   row: {
-  //     flexDirection: "row",
-  //     justifyContent: "space-between",
-  //     alignItems: "center",
-  //     marginBottom: 24,
-  //   },
-  //   title: {
-  //     fontSize: 24,
-  //     fontWeight: "600",
-  //     color: "#fff",
-  //   },
-  //   text: {
-  //     fontSize: 16,
-  //     fontWeight: "normal",
-  //     color: "#fff",
-  //   },
+  selectCar: {
+    backgroundColor: "#2bced6",
+    paddingHorizontal: 10,
+    flexDirection: "row",
+    justifyContent: "center",
+    borderRadius: 20,
+    marginBottom: 20,
+    width: "80%",
+    paddingVertical: 5
+  },
+
+  basket: {   
+    position: "absolute",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#2bced6",
+    height: 16,
+    width: 16,
+    zIndex: 2,
+    left: -3,
+    borderRadius: 999
+  }
 });

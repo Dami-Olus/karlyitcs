@@ -7,8 +7,8 @@ import PlanCard from "../components/PlanCard";
 function Plans() {
   const navigation = useNavigation();
   return (
-    <View>
-      <Text style={tw`mt-10 mb-5`}>Subscribe to a Plan</Text>
+    <View style={tw`flex-grow justify-center px-5`}>
+      <Text style={tw`mb-5 text-xl font-semibold`}>Subscribe to a Plan</Text>
       <PlanCard
         image={require("../assets/icons/maintain.png")}
         description={

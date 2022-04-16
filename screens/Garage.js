@@ -1,53 +1,23 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
-  FlatList,
-  Image,
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
-import RequestCard from "../components/RequestCard";
 import tw from "tailwind-react-native-classnames";
-import { Icon } from "react-native-elements";
 import AddCar from "../components/AddCar";
 import CarCard from "../components/CarCard";
-import Firebase from "../config/firebase";
-import { AuthenticatedUserContext } from "../navigation/AuthenticatedUserProvider";
-
-const firestore = Firebase.firestore();
+import { useSelector } from "react-redux";
 
 const Garage = () => {
-  const { user } = useContext(AuthenticatedUserContext);
-  const [loading, setLoading] = useState(true); // Set loading to true on component mount
-  const [garage, setGarage] = useState([]); // Initial empty array of users
-
-  useEffect(() => {
-    const subscriber = firestore
-      .collection("Garage").doc(user.uid).collection('Garage').where('garageId', '==', user.uid)
-      .onSnapshot((querySnapshot) => {
-        const garage = [];
-
-        querySnapshot.forEach((documentSnapshot) => {
-          garage.push({
-            ...documentSnapshot.data(),
-            key: documentSnapshot.id,
-          });
-        });
-        // console.log(garage);
-        setGarage(garage);
-        setLoading(false);
-      });
-  },[]);
-
-  console.log(garage);
+  const { cars } = useSelector(state => state.car)
 
   return (
-    <ScrollView style={tw`mb-8`}>
+    <ScrollView style={tw`flex-grow mt-10 mb-5 pb-10`}>
       <View>
-        <View style={tw`ml-5 mt-5 mb-5`}>
-          <View style={tw`mb-8`}>
+        <View style={tw`ml-5 mb-5`}>
+          <View style={tw`mb-5`}>
             <Text style={tw`font-bold text-lg text-black`}>Garage</Text>
             <Text>Select a car</Text>
           </View>
@@ -55,14 +25,23 @@ const Garage = () => {
         <AddCar />
       </View>
       
-      <FlatList
-        data={garage}
-        renderItem={({ item }) => (
-          <CarCard make={item.Make} model={item.Model} />
-        )}
-        keyExtractor={(item) => item.key}
-      />
-      
+      {
+        cars.length === 0 ?
+        <View style={tw`flex-grow justify-center items-center`}>
+          <Text style={tw`text-lg font-semibold`}>You have no cars in your garage yet</Text>
+        </View>
+        
+        :
+
+        cars.map(item => {
+          return (
+          <View key={item.key}>
+            <CarCard car_details={item} />
+          </View>
+          )
+        })
+
+      }
     </ScrollView>
   );
 };
